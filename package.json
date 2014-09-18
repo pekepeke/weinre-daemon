@@ -8,7 +8,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "weinre": "^2.0.0-pre-HZO3BMNG"
   }
 }

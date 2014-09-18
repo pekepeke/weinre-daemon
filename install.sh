@@ -15,8 +15,9 @@ EOM
 }
 
 weinred_plist() {
-  LABEL=$1
-  BIN=$2
+  local NODE=$(which node)
+  local LABEL=$1
+  local BIN=$2
   cat <<EOM
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -26,7 +27,7 @@ weinred_plist() {
   <string>$LABEL</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/sh</string>
+    <string>${NODE}</string>
     <string>$BIN</string>
   </array>
   <key>RunAtLoad</key>
@@ -45,6 +46,7 @@ install_repository() {
     git clone https://github.com/pekepeke/weinre-daemon ~/.weinred
     cd ~/.weinred
     git submodule update --init --recursive
+    npm install
   else
     cd ~/.weinred
     git pull
@@ -54,6 +56,7 @@ install_repository() {
 }
 
 install_osx() {
+  install_repository
   local LABEL=$(basename $AGENT_PLIST .plist)
   weinred_plist $LABEL "$HOME/.weinred/node_modules/.bin/weinre ${CMD_OPTION}" > "$HOME/Library/LaunchAgents/$AGENT_PLIST"
   launchctl load -Fw "$HOME/Library/LaunchAgents/$AGENT_PLIST"
