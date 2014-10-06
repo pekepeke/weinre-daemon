@@ -2,7 +2,7 @@
 
 opt_uninstall=0
 AGENT_PLIST="com.github.pekepeke.weinre.plist"
-CMD_OPTION="--boundHost=0.0.0.0 --httpPort=58080"
+# CMD_OPTION="--boundHost=0.0.0.0 --httpPort=58080"
 
 usage() {
   prg_name=`basename $0`
@@ -27,7 +27,8 @@ weinred_plist() {
   <string>$LABEL</string>
   <key>ProgramArguments</key>
   <array>
-    <string>${NODE}</string>
+    <string>/bin/sh</string>
+    <string>-c</string>
     <string>$BIN</string>
   </array>
   <key>RunAtLoad</key>
@@ -38,6 +39,16 @@ weinred_plist() {
   <false/>
 </dict>
 </plist>
+EOM
+}
+
+weinred_runner() {
+  local NODE=$(which node)
+  local BIN="$HOME/.weinred/node_modules/.bin/weinre"
+  cat <<EOM
+#!/bin/sh
+
+exec ${NODE} ${BIN} $(echo `cat $HOME/.weinred/config`)
 EOM
 }
 
@@ -58,7 +69,10 @@ install_repository() {
 install_osx() {
   install_repository
   local LABEL=$(basename $AGENT_PLIST .plist)
-  weinred_plist $LABEL "$HOME/.weinred/node_modules/.bin/weinre ${CMD_OPTION}" > "$HOME/Library/LaunchAgents/$AGENT_PLIST"
+  local RUNNER="$HOME/.weinred/runner"
+  weinred_runner > $RUNNER
+  chmod a+x $RUNNER
+  weinred_plist $LABEL "${RUNNER}" > "$HOME/Library/LaunchAgents/$AGENT_PLIST"
   launchctl load -Fw "$HOME/Library/LaunchAgents/$AGENT_PLIST"
 }
 
